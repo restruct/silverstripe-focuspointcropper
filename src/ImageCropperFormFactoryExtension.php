@@ -32,6 +32,11 @@ class ImageCropperFormFactoryExtension
         /** @var File $record */
         $record = isset($context['Record']) ? $context['Record'] : null;
         if ($record && $record->hasField('CropData')) {
+            // Skip cropper for SVG files (they don't have pixel dimensions)
+            if ($record->getExtension() === 'svg' || !$record->getWidth() || !$record->getHeight()) {
+                return;
+            }
+
             // Using HiddenField/display-none field, changes somehow will not be picked up (by react?) -> hiding old-skool (CSS)
             $fields->insertAfter('Title', $dataField = TextField::create('CropData', 'CropData', $record->CropData) );
             if(Director::isDev() && self::$debug) $dataField->addExtraClass('debug');
@@ -39,12 +44,18 @@ class ImageCropperFormFactoryExtension
             // ($previewImage gets created with these sizes from FocusPointField)
             $previewImage = $record
                 ->FitMax(FocusPointField::config()->get('max_width'), FocusPointField::config()->get('max_height'));
+
+            // Additional safety check: skip if preview couldn't be generated
+            if (!$previewImage || !$previewImage->getWidth() || !$previewImage->getHeight()) {
+                return;
+            }
+
             $sizes = array(
                 // feed values relative to which the crop data will be scaled from JS
-                'originalWidth' => $record->width,
-                'originalHeight' => $record->height,
-                'previewWidth' => $previewImage->width,
-                'previewHeight' => $previewImage->height,
+                'originalWidth' => $record->getWidth(),
+                'originalHeight' => $record->getHeight(),
+                'previewWidth' => $previewImage->getWidth(),
+                'previewHeight' => $previewImage->getHeight(),
                 // not actually used, but left here for reference:
                 'cmsPreviewWidth' => Image::config()->get('asset_preview_width'),
             );
