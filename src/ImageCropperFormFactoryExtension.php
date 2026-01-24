@@ -32,11 +32,6 @@ class ImageCropperFormFactoryExtension
         /** @var File $record */
         $record = isset($context['Record']) ? $context['Record'] : null;
         if ($record && $record->hasField('CropData')) {
-            // Skip cropper for SVG files (they don't have pixel dimensions)
-            if ($record->getExtension() === 'svg' || !$record->getWidth() || !$record->getHeight()) {
-                return;
-            }
-
             // Using HiddenField/display-none field, changes somehow will not be picked up (by react?) -> hiding old-skool (CSS)
             $fields->insertAfter('Title', $dataField = TextField::create('CropData', 'CropData', $record->CropData) );
             if(Director::isDev() && self::$debug) $dataField->addExtraClass('debug');

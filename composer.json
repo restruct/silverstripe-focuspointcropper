@@ -10,7 +10,7 @@
 	}],
 	"require": {
 		"jonom/focuspoint": "^4 || ^5",
-        "restruct/silverstripe-simpler": "^0.1"
+        "restruct/silverstripe-simpler": "~0.2"
 	},
     "replace": {
         "micschk/silverstripe-focuspointcropper": "*"

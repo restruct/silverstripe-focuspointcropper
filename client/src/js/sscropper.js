@@ -1,9 +1,10 @@
-//import $ from 'jQuery';
+//import jQuery from 'jQuery';
 //import React from 'react';
 //import Injector from 'lib/Injector';
 // import registerComponents from './registerComponents';
 import Cropper from "cropperjs"
 
+const $ = jQuery;
 
 const sscropper = {
 
@@ -25,12 +26,12 @@ const sscropper = {
     },
 
     configField: function(){
-        // return this.$el.parents('.fieldgroup').find('input[name="CropData"]')
+        // return this.jQueryel.parents('.fieldgroup').find('input[name="CropData"]')
         return $(this.cropImgEl).parents('fieldset').find('input[name="CropperConfig"]');
     },
 
     dataField: function(){
-        // return this.$el.parents('.fieldgroup').find('input[name="CropData"]')
+        // return this.jQueryel.parents('.fieldgroup').find('input[name="CropData"]')
         // return $(this.cropImgEl).parents('fieldset').find('input[name="CropData"]');
         return document.getElementById("Form_fileEditForm_CropData");
     },
