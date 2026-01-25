@@ -50,6 +50,9 @@ const sscropper = {
         highlight: false,
         background: false,
         // cropBoxMovable: false,
+        // Override CropperJS defaults to match FocusPointField's preview dimensions
+        minContainerWidth: 0,
+        minContainerHeight: 0,
     },
 
     init: function(image) {

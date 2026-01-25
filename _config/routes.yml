@@ -1,0 +1,7 @@
+---
+Name: focuspointcrop-routes
+After: '#rootroutes'
+---
+SilverStripe\Control\Director:
+  rules:
+    'dev/crop-compare': Restruct\SilverStripe\ImageCropper\Controllers\CropCompareController

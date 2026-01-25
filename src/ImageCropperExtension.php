@@ -287,7 +287,11 @@ class ImageCropperExtension
             });
 
             // recalculate (offset) & set FocusPoint data on new image (based on FocusPointExtension)
-            if (!$newImage) { return null; }
+            // If manipulation failed (e.g., SVG images can't be cropped with GD/ImageMagick),
+            // fall back to the original image so chained methods can still work
+            if (!$newImage) {
+                return $this->owner;
+            }
 
             // perform some recalculations
             $FPX_orig_relZeroBased = ($this->owner->FocusPointX +1) / 2; // eg at 100 of 200 width cropped from X 60 to 110px width (right offset 170, right margin 30)
