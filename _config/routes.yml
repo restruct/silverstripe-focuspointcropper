@@ -1,7 +1,9 @@
 ---
-Name: focuspointcrop-routes
-After: '#rootroutes'
+Name: focuspointcrop-dev
 ---
-SilverStripe\Control\Director:
-  rules:
-    'dev/crop-compare': Restruct\SilverStripe\ImageCropper\Controllers\CropCompareController
+SilverStripe\Dev\DevelopmentAdmin:
+  registered_controllers:
+    crop-compare:
+      controller: Restruct\SilverStripe\ImageCropper\Controllers\CropCompareController
+      links:
+        crop-compare: 'Test focuspoint crop functionality'

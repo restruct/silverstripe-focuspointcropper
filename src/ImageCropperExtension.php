@@ -269,24 +269,29 @@ class ImageCropperExtension
      */
     private function applyCropManipulation(?int $width=null, ?int $height=null, bool $upscale=true)
     {
-        // originalX"]=> int(666) ["originalY"]=> int(238) ["originalWidth"]=> int(1342) ["originalHeight
-	$cropData = $this->owner->CropData ? json_decode($this->owner->CropData) : null;
+        // Check if this is an SVG with cropping support
+        if ($this->owner->hasMethod('applyCropData') && $this->owner->CropData) {
+            $croppedSVG = $this->owner->applyCropData($this->owner->CropData);
+            if ($croppedSVG) {
+                return $croppedSVG;
+            }
+            // Fall through to return owner if applyCropData returns null
+        }
+
+        $cropData = $this->owner->CropData ? json_decode($this->owner->CropData) : null;
+
         if (
             $cropData // If we have data and the properties we need are defined
             && property_exists($cropData, 'originalX') && property_exists($cropData, 'originalY')
             && property_exists($cropData, 'originalWidth') && property_exists($cropData, 'originalHeight')
             // AND at least width or height is different from original
-//            && ($cropData->originalWidth != $this->owner->width || $cropData->originalHeight != $this->owner->height)
             && ($cropData->originalWidth != $this->owner->getWidth() || $cropData->originalHeight != $this->owner->getHeight())
         ) {
-            // Apparently the SSv4 way of manipulating images;
             $variantName = $this->owner->variantName('cropped', $cropData->originalX, $cropData->originalY, $cropData->originalWidth, $cropData->originalHeight);
             $newImage = $this->owner->manipulateImage($variantName, function (Image_Backend $backend) use ($cropData) {
-                // Apply crop
                 return $backend->crop($cropData->originalY, $cropData->originalX, $cropData->originalWidth, $cropData->originalHeight);
             });
 
-            // recalculate (offset) & set FocusPoint data on new image (based on FocusPointExtension)
             // If manipulation failed (e.g., SVG images can't be cropped with GD/ImageMagick),
             // fall back to the original image so chained methods can still work
             if (!$newImage) {

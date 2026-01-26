@@ -26,6 +26,13 @@
         .cropped-row td:first-child {
             border-left: 3px solid #28a745;
         }
+        .focuspoint-row td:first-child {
+            border-left: 3px solid #ffc107;
+        }
+        .cropped-row.focuspoint-row td:first-child {
+            border-left: 3px solid #28a745;
+            border-image: linear-gradient(to bottom, #28a745 50%, #ffc107 50%) 1;
+        }
         .setup-divider::before,
         .setup-divider::after {
             content: '';
@@ -65,7 +72,7 @@
             <div class="mt-4">
                 <p><strong>Option 1:</strong> Install test images with sample CropData</p>
                 <p class="small text-muted mb-3">
-                    Creates 2 test files (SVG + PNG) in <code>assets/crop-compare-test/</code><br>
+                    Creates 2 test files (SVG + PNG) in <code>assets/$TestFolder/</code><br>
                     with pre-configured CropData for testing
                 </p>
                 <a href="$InstallURL" class="btn btn-success" onclick="return confirm('Install test images to the database?');">
@@ -129,6 +136,12 @@
                             <% else %>
                                 <p class="text-muted small">No CropData set. <a href="$SVGEditURL" target="_blank">Edit in CMS</a> to add crop selection.</p>
                             <% end_if %>
+                            <h6 class="mt-2">FocusPoint <% if $SVGHasFocusPoint %><span class="badge bg-warning text-dark">Set</span><% else %><span class="badge bg-secondary">None</span><% end_if %></h6>
+                            <% if $SVGHasFocusPoint %>
+                                <div class="crop-data">X: $SVGFocusPointX, Y: $SVGFocusPointY</div>
+                            <% else %>
+                                <p class="text-muted small">No FocusPoint set.</p>
+                            <% end_if %>
                         </div>
                     </div>
                 </div>
@@ -138,16 +151,19 @@
                 <table class="table table-bordered bg-white">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 200px;">Method</th>
+                            <th style="width: 220px;">Method</th>
                             <th class="text-center">Result</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% loop $SVGComparisons %>
-                        <tr<% if $IsCropped %> class="cropped-row"<% end_if %>>
+                        <tr class="<% if $IsCropped %>cropped-row<% end_if %><% if $UsesFocusPoint %> focuspoint-row<% end_if %>">
                             <td class="font-monospace small bg-light">
                                 $Label
-                                <% if $IsCropped %><br><span class="badge bg-success">cropped</span><% end_if %>
+                                <div class="mt-1">
+                                    <% if $IsCropped %><span class="badge bg-success">cropped</span><% end_if %>
+                                    <% if $UsesFocusPoint %><span class="badge bg-warning text-dark">focuspoint</span><% end_if %>
+                                </div>
                             </td>
                             <% if $Error %>
                                 <td class="text-danger small bg-danger-subtle">Error: $Error</td>
@@ -193,6 +209,12 @@
                             <% else %>
                                 <p class="text-muted small">No CropData set. <a href="$PNGEditURL" target="_blank">Edit in CMS</a> to add crop selection.</p>
                             <% end_if %>
+                            <h6 class="mt-2">FocusPoint <% if $PNGHasFocusPoint %><span class="badge bg-warning text-dark">Set</span><% else %><span class="badge bg-secondary">None</span><% end_if %></h6>
+                            <% if $PNGHasFocusPoint %>
+                                <div class="crop-data">X: $PNGFocusPointX, Y: $PNGFocusPointY</div>
+                            <% else %>
+                                <p class="text-muted small">No FocusPoint set.</p>
+                            <% end_if %>
                         </div>
                     </div>
                 </div>
@@ -202,16 +224,19 @@
                 <table class="table table-bordered bg-white">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 200px;">Method</th>
+                            <th style="width: 220px;">Method</th>
                             <th class="text-center">Result</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% loop $PNGComparisons %>
-                        <tr<% if $IsCropped %> class="cropped-row"<% end_if %>>
+                        <tr class="<% if $IsCropped %>cropped-row<% end_if %><% if $UsesFocusPoint %> focuspoint-row<% end_if %>">
                             <td class="font-monospace small bg-light">
                                 $Label
-                                <% if $IsCropped %><br><span class="badge bg-success">cropped</span><% end_if %>
+                                <div class="mt-1">
+                                    <% if $IsCropped %><span class="badge bg-success">cropped</span><% end_if %>
+                                    <% if $UsesFocusPoint %><span class="badge bg-warning text-dark">focuspoint</span><% end_if %>
+                                </div>
                             </td>
                             <% if $Error %>
                                 <td class="text-danger small bg-danger-subtle">Error: $Error</td>
@@ -235,10 +260,29 @@
 
     <div class="alert alert-info mt-4">
         <strong>Legend:</strong>
-        <span class="badge bg-success ms-2">cropped</span> = Uses CropData before applying manipulation
-        <span class="ms-3">|</span>
-        <span class="ms-3">Green left border = Cropped method</span>
+        <span class="badge bg-success ms-2">cropped</span> = Uses CropData before manipulation
+        <span class="badge bg-warning text-dark ms-2">focuspoint</span> = Crops around focus point (vs center)
+        <br class="mt-2">
+        <span class="d-inline-block mt-1" style="border-left: 3px solid #28a745; padding-left: 8px;">Green left border</span> = Cropped method
+        <span class="d-inline-block mt-1 ms-3" style="border-left: 3px solid #ffc107; padding-left: 8px;">Yellow left border</span> = FocusPoint method
+        <% if not $HasFocusPointModule %>
+        <br class="mt-2">
+        <strong class="text-warning">Note:</strong> FocusPoint module (<code>jonom/focuspoint</code>) is not installed. FocusFill and CroppedFocusFill methods are not shown.
+        <% end_if %>
     </div>
+
+    <% if $UsingTestImages %>
+    <div class="alert alert-secondary mt-3">
+        <strong>Test Image Guide:</strong>
+        <ul class="mb-0 mt-2">
+            <li><strong>Dashed lines</strong> mark the crop boundaries (x: 50-150, y: 37-112 = center 100&times;75px)</li>
+            <li><strong>White crosshair</strong> marks the FocusPoint (X: 0.25, Y: -0.27) - inside crop area, right of center</li>
+            <li><strong>Orange triangle</strong> is near the FocusPoint - should stay visible in FocusFill crops</li>
+            <li><strong>Red circle</strong> is left of center - may be cropped in narrow FocusFill</li>
+            <li>Compare <code>Fill()</code> vs <code>FocusFill()</code>: Fill crops from center, FocusFill keeps the triangle visible</li>
+        </ul>
+    </div>
+    <% end_if %>
 
 <% end_if %>
 
