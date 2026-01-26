@@ -12,10 +12,9 @@ This module adds a visual crop interface to Silverstripe's AssetAdmin, building 
 
 | Branch | Module Version | Silverstripe | FocusPoint | PHP |
 |--------|----------------|--------------|------------|-----|
-| `main` | `2.x` | ^6.0 | ^6.0 | ^8.3 |
-| `1` | `1.x` | ^4.0 \|\| ^5.0 | ^4.0 \|\| ^5.0 | ^7.4 \|\| ^8.0 |
+| `master` | `2.x` | ^4.0 \|\| ^5.0 | ^4.0 \|\| ^5.0 | ^7.4 \|\| ^8.0 |
 
-**Note:** `composer.json` is the source of truth for exact version constraints. This module replaces the older `micschk/silverstripe-focuspointcropper` package.
+**Note:** `composer.json` is the source of truth for exact version constraints. This module replaces the older `micschk/silverstripe-focuspointcropper` package. Silverstripe 6 support is planned.
 
 ## Basic Usage
 
