@@ -54,6 +54,15 @@ And these failed quietly:
   (`...\FocusPointCropField`), so that configuration was silently ignored. It is configured on
   `SilverStripe\Assets\Image`.
 
+### Removed
+
+- `client/legacy/` (the pre-4.x cropper assets: cropper v2 and jQuery 2.2.3, which has known XSS
+  advisories). Nothing referenced it, but `expose: client` published it into every project's
+  `_resources`.
+- `TODO_SVG_ISSUES.md`: its open item (SVG crop support) is handled by
+  `restruct/silverstripe-svg-images` 3.x.
+- `src/.upgrade.yml`: its mappings pointed at a namespace that does not exist.
+
 ### Tests and CI
 
 - First test suite (36 tests), run on Silverstripe 5 and 6 in GitHub Actions, together with a
