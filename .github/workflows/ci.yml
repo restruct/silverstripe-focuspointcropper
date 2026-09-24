@@ -174,14 +174,22 @@ jobs:
         #   failOnWarning.
         # - SS6 (framework 6, PHPUnit 11): a `flush=1` argument no longer works; framework 6 reads
         #   SS_PHPUNIT_FLUSH instead, which also combines with --testsuite.
+        #
+        # Count guard: a green run with fewer tests than expected (a test file no longer
+        # discovered, a namespace that stopped autoloading) is a failure, not a pass. Update
+        # EXPECTED when tests are added or removed. PHPUnit 11 (SS6) also gets
+        # --fail-on-empty-test-suite; PHPUnit 9 (SS5) has no such option, the count guard covers it.
         run: |
+          set -o pipefail
+          EXPECTED='OK (36 tests'
           if [ "${{ matrix.silverstripe }}" = "5" ]; then
-            vendor/bin/phpunit vendor/restruct/silverstripe-focuspointcropper/tests flush=1
+            vendor/bin/phpunit vendor/restruct/silverstripe-focuspointcropper/tests flush=1 | tee module-tests.log
             vendor/bin/phpunit app/tests flush=1
           else
-            SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit --testsuite focuspointcropper
-            SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit --testsuite consumer
+            SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit --fail-on-empty-test-suite --testsuite focuspointcropper | tee module-tests.log
+            SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit --fail-on-empty-test-suite --testsuite consumer
           fi
+          grep -qF "$EXPECTED" module-tests.log || { echo "::error::expected '$EXPECTED', see the run output above"; exit 1; }
 
       - name: Boot the app and build the database
         # The suite proves the classes behave; this proves the module does not break a real boot

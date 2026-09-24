@@ -69,6 +69,8 @@ And these failed quietly:
 - First test suite (36 tests), run on Silverstripe 5 and 6 in GitHub Actions, together with a
   consumer-shape database test and a `dev/build`. It checks what each crop actually shows, pixel
   by pixel, not only its size.
+- CI fails a run that reports fewer than the expected 36 tests, and on Silverstripe 6 (PHPUnit 11)
+  one that runs no tests at all.
 
 ## 2.0.8 and earlier
 
