@@ -21,9 +21,8 @@ jobs:
           # used with here. The module's composer.json is the source of truth for the supported
           # range; this matrix must follow it.
           #
-          # The SS6 legs cannot resolve until restruct/silverstripe-simpler publishes a 1.x release
-          # (the first to allow Silverstripe 6): composer.json requires it as `~0.2 || ^1`, and
-          # every 0.x release is Silverstripe 4/5 only.
+          # composer.json requires restruct/silverstripe-simpler `~0.2 || ^1`; the SS6 legs resolve
+          # its 1.x line, first released as 1.0.0 on 2026-09-25 (before that they could not resolve).
           - silverstripe: '5'
             php: '8.1'
             recipe: '^5'
