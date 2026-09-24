@@ -110,12 +110,18 @@ class PublishCropDataTaskTest extends SapphireTest
         $this->assertSame($this->cropData(0, 0, 100, 75), $this->liveCropData($image));
     }
 
-    public function testDoesNotPublishImagesThatWereNeverPublished(): void
+    /**
+     * Pins the live-stage query: an image that was never published has no live row, so it is
+     * never selected. The isPublished() guard in the loop is a second line of defence; checking
+     * 'published' alone could not tell the two apart (that guard alone kept it at 0).
+     */
+    public function testNeverPublishedImagesAreNotSelectedByTheLiveStageQuery(): void
     {
         $draft = $this->makeQuadrantImage('draft.png', ['CropData' => $this->cropData(0, 0, 100, 75)], false);
 
         $result = $this->runTask(PublishCropDataTask::create());
 
+        $this->assertSame(0, $result['found']);
         $this->assertSame(0, $result['published']);
         $this->assertFalse($draft->isPublished());
     }
