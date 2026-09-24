@@ -114,13 +114,14 @@ class ImageCropperExtensionTest extends SapphireTest
 
     public function testCroppedScaleWidthKeepsTheCroppedAspectRatio(): void
     {
-        $image = $this->makeQuadrantImage('scale.png', ['CropData' => $this->cropData(100, 75, 100, 75)]);
+        // A 100x50 region, a different aspect ratio from the 200x150 original, so an uncropped
+        // ScaleWidth() cannot produce the same size by accident
+        $image = $this->makeQuadrantImage('scale.png', ['CropData' => $this->cropData(100, 75, 100, 50)]);
 
         $scaled = $image->CroppedScaleWidth(50);
 
-        // 100x75 cropped, then scaled to 50 wide - not the 200x150 original's ratio by accident
-        $this->assertSame('50x38', $this->sizeOf($scaled));
-        $this->assertQuadrant('bottom-right', $this->pixelOf($scaled, 25, 19));
+        $this->assertSame('50x25', $this->sizeOf($scaled));
+        $this->assertQuadrant('bottom-right', $this->pixelOf($scaled, 5, 5));
     }
 
     public function testCroppedFocusFillProducesTheRequestedSizeFromTheRegion(): void
