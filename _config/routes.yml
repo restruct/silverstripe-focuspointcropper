@@ -1,5 +1,11 @@
+# /dev/crop-compare is registered with DevelopmentAdmin, whose config key and shape changed in
+# Silverstripe 6: `registered_controllers` (controller + links) became `controllers` (class +
+# description), and the old key is no longer read - the page silently 404'd on 6.
+# PolyOutput exists only on Silverstripe 6, so it selects the right fragment per major.
 ---
 Name: focuspointcrop-dev
+Except:
+  classexists: 'SilverStripe\PolyExecution\PolyOutput'
 ---
 SilverStripe\Dev\DevelopmentAdmin:
   registered_controllers:
@@ -7,3 +13,14 @@ SilverStripe\Dev\DevelopmentAdmin:
       controller: Restruct\SilverStripe\ImageCropper\Controllers\CropCompareController
       links:
         crop-compare: 'Test focuspoint crop functionality'
+
+---
+Name: focuspointcrop-dev-ss6
+Only:
+  classexists: 'SilverStripe\PolyExecution\PolyOutput'
+---
+SilverStripe\Dev\DevelopmentAdmin:
+  controllers:
+    crop-compare:
+      class: Restruct\SilverStripe\ImageCropper\Controllers\CropCompareController
+      description: 'Test focuspoint crop functionality'

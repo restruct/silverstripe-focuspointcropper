@@ -17,7 +17,7 @@ use SilverStripe\View\Requirements;
 /**
  * “To add fields to the file edit form in asset-admin, you will need to add an extension to FileFormFactory and use the updateFormFields() hook.”
  *
- * @extends DataExtension
+ * @extends Extension<FileFormFactory>
  */
 class ImageCropperFormFactoryExtension
     extends Extension

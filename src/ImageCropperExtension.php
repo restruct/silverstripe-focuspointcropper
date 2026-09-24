@@ -8,17 +8,21 @@ use SilverStripe\Assets\Image_Backend;
 use SilverStripe\Assets\Storage\AssetContainer;
 use SilverStripe\Assets\Storage\DBFile;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
+// Was SilverStripe\ORM\DataExtension: deprecated in Silverstripe 5.3 and removed in 6, where
+// loading this class fataled the whole application on the next flush. Core\Extension carries
+// $db and the other config statics on both majors.
+//use SilverStripe\ORM\DataExtension;
 
 /**
  * ImageCropper extension
  * Regular ->Fit() etc methods come from trait ImageManipulation which is applied on Image::class from its parent File::class
  *
- * @extends DataExtension
+ * @extends Extension<Image>
  * @property DBFile|Image $owner
  */
 class ImageCropperExtension
-    extends DataExtension
+    extends Extension
 {
     /**
      * Field to hold cropdata
@@ -47,7 +51,9 @@ class ImageCropperExtension
 //        if (Config::inst()->get(get_parent_class(), 'flush_on_change') && $this->owner->isChanged('CropData')) {
 //            $this->owner->deleteFormattedImages();
 //        }
-        parent::onBeforeWrite();
+        // Core\Extension has no onBeforeWrite() to call (DataExtension had an empty one), so the
+        // parent call is gone; this hook is a no-op until the @TODO above is resolved.
+//        parent::onBeforeWrite();
     }
 
     /**
@@ -289,7 +295,20 @@ class ImageCropperExtension
         ) {
             $variantName = $this->owner->variantName('cropped', $cropData->originalX, $cropData->originalY, $cropData->originalWidth, $cropData->originalHeight);
             $newImage = $this->owner->manipulateImage($variantName, function (Image_Backend $backend) use ($cropData) {
-                return $backend->crop($cropData->originalY, $cropData->originalX, $cropData->originalWidth, $cropData->originalHeight);
+                // Silverstripe 6 types these as int and adds a REQUIRED $position to the
+                // Image_Backend::crop() interface (core's InterventionBackend defaults it to
+                // 'top-left'). Passing it explicitly keeps any other backend working on 6; on 5 the
+                // interface takes four arguments and PHP ignores the extra ones. The coordinates
+                // are cast because CropData is JSON and a non-integer value would raise a
+                // float-to-int deprecation on 6.
+//                return $backend->crop($cropData->originalY, $cropData->originalX, $cropData->originalWidth, $cropData->originalHeight);
+                return $backend->crop(
+                    (int) round($cropData->originalY),
+                    (int) round($cropData->originalX),
+                    (int) round($cropData->originalWidth),
+                    (int) round($cropData->originalHeight),
+                    'top-left'
+                );
             });
 
             // If manipulation failed (e.g., SVG images can't be cropped with GD/ImageMagick),

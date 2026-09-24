@@ -3,14 +3,19 @@
 	"description": "Even smarter automatic image cropping for SilverStripe",
 	"type": "silverstripe-vendormodule",
 	"keywords": ["silverstripe", "crop", "cropping", "focus", "focuspoint", "image"],
-	"license": "BSD-3-Clause",
+	"license": "MIT",
 	"authors": [{
 		"name": "Restruct",
 		"homepage": "http://restruct.nl"
 	}],
 	"require": {
-		"jonom/focuspoint": "^4 || ^5",
-        "restruct/silverstripe-simpler": "~0.2"
+		"php": "^8.1",
+		"silverstripe/framework": "^5 || ^6",
+		"jonom/focuspoint": "^5 || ^6",
+        "restruct/silverstripe-simpler": "~0.2 || ^1"
+	},
+	"require-dev": {
+		"silverstripe/recipe-testing": "^3 || ^4"
 	},
     "replace": {
         "micschk/silverstripe-focuspointcropper": "*"
@@ -20,9 +25,20 @@
             "Restruct\\SilverStripe\\ImageCropper\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Restruct\\ImageCropper\\Tests\\": "tests/"
+        }
+    },
 	"extra": {
         "expose": [
             "client"
         ]
-    }
+    },
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/restruct"
+        }
+    ]
 }
