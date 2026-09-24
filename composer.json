@@ -17,6 +17,9 @@
 	"require-dev": {
 		"silverstripe/recipe-testing": "^3 || ^4"
 	},
+    "suggest": {
+        "restruct/silverstripe-svg-images": "Crop support for SVG images; /dev/crop-compare uses its SVGImage class when installed"
+    },
     "replace": {
         "micschk/silverstripe-focuspointcropper": "*"
     },

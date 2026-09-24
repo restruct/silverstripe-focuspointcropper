@@ -50,6 +50,7 @@ And these failed quietly:
 - A `LICENSE` file is added (BSD-3-Clause, unchanged from earlier releases), naming the
   copyright holders as the history shows.
 - `composer.json` has a `funding` entry.
+- `composer.json` suggests `restruct/silverstripe-svg-images` (optional; used when installed).
 - README: the `cropconfig` example named a class that does not exist
   (`...\FocusPointCropField`), so that configuration was silently ignored. It is configured on
   `SilverStripe\Assets\Image`.
