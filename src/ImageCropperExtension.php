@@ -319,13 +319,21 @@ class ImageCropperExtension
 
             // perform some recalculations
             $FPX_orig_relZeroBased = ($this->owner->FocusPointX +1) / 2; // eg at 100 of 200 width cropped from X 60 to 110px width (right offset 170, right margin 30)
-            $FPX_orig_abs = $FPX_orig_relZeroBased * $this->owner->FocusPointWidth; // eg at 100 of 200 width cropped from X 60 to 110px width (right offset 170, right margin 30)
+            // The image's own size, via DBFocusPoint::getWidth()/getHeight(): FocusPointWidth/Height
+            // are only a cache, which focuspoint fills once the record already exists (its second
+            // write; publishing counts). On an image written once and left in draft they were 0,
+            // and the focus point collapsed onto the crop's top-left corner.
+            $imageWidth = $this->owner->FocusPoint ? $this->owner->FocusPoint->getWidth() : $this->owner->getWidth();
+            $imageHeight = $this->owner->FocusPoint ? $this->owner->FocusPoint->getHeight() : $this->owner->getHeight();
+//            $FPX_orig_abs = $FPX_orig_relZeroBased * $this->owner->FocusPointWidth; // eg at 100 of 200 width cropped from X 60 to 110px width (right offset 170, right margin 30)
+            $FPX_orig_abs = $FPX_orig_relZeroBased * $imageWidth; // eg at 100 of 200 width cropped from X 60 to 110px width (right offset 170, right margin 30)
             $FPX_new_abs = $FPX_orig_abs - $cropData->originalX; // eg 100 (orig x) - 60 (left crop offset) = 40
             $FPX_new_relZeroBased = 1 / $cropData->originalWidth * $FPX_new_abs;
             $FPX_new_rel = $FPX_new_relZeroBased * 2 - 1;
 
             $FPY_orig_relZeroBased = ($this->owner->FocusPointY + 1) / 2;
-            $FPY_orig_abs = $FPY_orig_relZeroBased * $this->owner->FocusPointHeight;
+//            $FPY_orig_abs = $FPY_orig_relZeroBased * $this->owner->FocusPointHeight;
+            $FPY_orig_abs = $FPY_orig_relZeroBased * $imageHeight;
             $FPY_new_abs = $FPY_orig_abs - $cropData->originalY;
             $FPY_new_relZeroBased = 1 / $cropData->originalHeight * $FPY_new_abs;
             $FPY_new_rel = $FPY_new_relZeroBased * 2 - 1;
