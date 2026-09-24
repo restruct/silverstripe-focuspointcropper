@@ -97,6 +97,19 @@ class PublishCropDataTaskTest extends SapphireTest
         );
     }
 
+    public function testLeavesImagesWhoseLiveVersionAlreadyHasCropDataAlone(): void
+    {
+        $image = $this->makeQuadrantImage('done.png', ['CropData' => $this->cropData(0, 0, 100, 75)]);
+        // A newer draft crop that the editor has not published: not this task's business
+        $image->CropData = $this->cropData(100, 0, 100, 75);
+        $image->write();
+
+        $result = $this->runTask(PublishCropDataTask::create());
+
+        $this->assertSame(0, $result['found']);
+        $this->assertSame($this->cropData(0, 0, 100, 75), $this->liveCropData($image));
+    }
+
     public function testDoesNotPublishImagesThatWereNeverPublished(): void
     {
         $draft = $this->makeQuadrantImage('draft.png', ['CropData' => $this->cropData(0, 0, 100, 75)], false);

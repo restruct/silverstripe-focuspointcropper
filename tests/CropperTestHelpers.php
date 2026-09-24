@@ -41,20 +41,28 @@ trait CropperTestHelpers
     }
 
     /**
-     * A 200x150 PNG in four solid quadrants (each 100x75), written ONCE and optionally published.
+     * A PNG in four solid quadrants (200x150 by default, so each quadrant is 100x75), written and
+     * optionally published.
      *
      * Unpublished, it is written exactly once: focuspoint only caches the image size
      * (FocusPointWidth/Height) once the record exists, so it is the state of an image created in
      * code and left in draft. Publishing writes again and fills that cache.
      */
-    protected function makeQuadrantImage(string $name = 'quadrants.png', array $fields = [], bool $publish = true): Image
-    {
-        $img = imagecreatetruecolor(200, 150);
+    protected function makeQuadrantImage(
+        string $name = 'quadrants.png',
+        array $fields = [],
+        bool $publish = true,
+        int $width = 200,
+        int $height = 150
+    ): Image {
+        $img = imagecreatetruecolor($width, $height);
+        $midX = intdiv($width, 2);
+        $midY = intdiv($height, 2);
         $boxes = [
-            'top-left' => [0, 0, 99, 74],
-            'top-right' => [100, 0, 199, 74],
-            'bottom-left' => [0, 75, 99, 149],
-            'bottom-right' => [100, 75, 199, 149],
+            'top-left' => [0, 0, $midX - 1, $midY - 1],
+            'top-right' => [$midX, 0, $width - 1, $midY - 1],
+            'bottom-left' => [0, $midY, $midX - 1, $height - 1],
+            'bottom-right' => [$midX, $midY, $width - 1, $height - 1],
         ];
         foreach ($boxes as $quadrant => [$x1, $y1, $x2, $y2]) {
             [$r, $g, $b] = static::$quadrants[$quadrant];

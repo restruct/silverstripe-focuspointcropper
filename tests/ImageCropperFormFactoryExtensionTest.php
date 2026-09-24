@@ -95,13 +95,25 @@ class ImageCropperFormFactoryExtensionTest extends SapphireTest
 
     public function testCropperIsFedTheImageAndPreviewSizes(): void
     {
-        $image = $this->makeQuadrantImage('sizes.png');
+        // Larger than FocusPointField's preview box (this module sets max_width 400,
+        // max_height 300), so original and preview sizes differ and cannot be confused.
+        $image = $this->makeQuadrantImage('sizes.png', [], true, 1000, 500);
 
         $sizing = $this->cropperAttributes($this->formFieldsFor($image))['cropsizing'];
 
-        $this->assertSame(200, $sizing['originalWidth']);
-        $this->assertSame(150, $sizing['originalHeight']);
-        // FocusPointField's preview is FitMax(max_width 400, max_height 300): no upscaling
+        $this->assertSame(1000, $sizing['originalWidth']);
+        $this->assertSame(500, $sizing['originalHeight']);
+        // FitMax(400, 300) of 1000x500
+        $this->assertSame(400, $sizing['previewWidth']);
+        $this->assertSame(200, $sizing['previewHeight']);
+    }
+
+    public function testSmallImagesAreNotUpscaledForThePreview(): void
+    {
+        $image = $this->makeQuadrantImage('small.png');
+
+        $sizing = $this->cropperAttributes($this->formFieldsFor($image))['cropsizing'];
+
         $this->assertSame(200, $sizing['previewWidth']);
         $this->assertSame(150, $sizing['previewHeight']);
     }
