@@ -15,7 +15,7 @@ This module adds a visual crop interface to Silverstripe's AssetAdmin, building 
 
 | Branch | Module Version | Silverstripe | FocusPoint | PHP |
 |--------|----------------|--------------|------------|-----|
-| `master` | `3.x` | `^5 \|\| ^6` | `^5 \|\| ^6` | `^8.1` (SS5) / `^8.3` (SS6) |
+| `main` | `3.x` | `^5 \|\| ^6` | `^5 \|\| ^6` | `^8.1` (SS5) / `^8.3` (SS6) |
 | (tags only) | `2.0.x` | `^4 \|\| ^5` | `^3`, later `^4 \|\| ^5` | `^7.4 \|\| ^8.0` |
 | (tags only) | `1.x` | `^3` | `~2.1` | |
 

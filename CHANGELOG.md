@@ -1,8 +1,8 @@
 # Changelog
 
-## 3.0.0 (unreleased)
+## 3.0.0 (2026-09-25)
 
-One line for Silverstripe 5 and 6 (PHP 8.1+), replacing `2.0.x` (Silverstripe 4 and 5).
+One line for Silverstripe 5 (PHP 8.1+) and 6 (PHP 8.3+), replacing `2.0.x` (Silverstripe 4 and 5).
 Silverstripe 4 is no longer supported; stay on `2.0.x` there. See [UPGRADING.md](UPGRADING.md).
 
 This also covers #2 (port the 2.0.8 changes to the Silverstripe 6 line): this line is built on top
