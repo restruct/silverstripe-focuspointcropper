@@ -15,7 +15,7 @@ This module adds a visual crop interface to Silverstripe's AssetAdmin, building 
 
 | Branch | Module Version | Silverstripe | FocusPoint | PHP |
 |--------|----------------|--------------|------------|-----|
-| `master` | `3.x` | `^5 \|\| ^6` | `^5 \|\| ^6` | `^8.1` |
+| `master` | `3.x` | `^5 \|\| ^6` | `^5 \|\| ^6` | `^8.1` (SS5) / `^8.3` (SS6) |
 | (tags only) | `2.0.x` | `^4 \|\| ^5` | `^3`, later `^4 \|\| ^5` | `^7.4 \|\| ^8.0` |
 | (tags only) | `1.x` | `^3` | `~2.1` | |
 
@@ -28,7 +28,7 @@ still on it should stay on the `2.0.x` tags, which remain available. Upgrading f
 
 ## Requirements and installation
 
-- Silverstripe 5 or 6, PHP 8.1+
+- Silverstripe 5 (PHP 8.1+) or 6 (PHP 8.3+, which Silverstripe 6 itself requires)
 - [jonom/focuspoint](https://github.com/jonom/silverstripe-focuspoint) `^5` (Silverstripe 5) or `^6` (Silverstripe 6)
 - [restruct/silverstripe-simpler](https://github.com/restruct/silverstripe-simpler) `~0.2` (Silverstripe 5) or `^1` (Silverstripe 6; the first 1.x release is pending, and until it is out this module cannot be installed on Silverstripe 6)
 - `ext-gd` (or Imagick) for the raster crop, as for any Silverstripe image manipulation
