@@ -7,7 +7,10 @@ use SilverStripe\Assets\File;
 use SilverStripe\Assets\Folder;
 use SilverStripe\Assets\Image;
 use SilverStripe\Control\Controller;
+use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Security\Permission;
+use SilverStripe\Security\Security;
 // ArrayData/ArrayList are no longer imported: they moved namespace in Silverstripe 6
 // (View\ArrayData -> Model\ArrayData, ORM\ArrayList -> Model\List\ArrayList) with no alias left
 // behind, so the class names are resolved per major - see arrayDataClass()/arrayListClass().
@@ -40,7 +43,27 @@ class CropCompareController extends Controller
     protected function init(): void
     {
         parent::init();
-        // Security handled by DevelopmentAdmin middleware (CSRF protection, auth)
+        // Was: "Security handled by DevelopmentAdmin middleware (CSRF protection, auth)". It is not.
+        // DevelopmentAdmin only refuses a user who can see NO dev link at all, then hands the
+        // request to a registered controller unchecked, and the dev-URL confirmation middleware
+        // does not authorise either. So in live mode anyone who can see one dev link (e.g. holding
+        // BUILDTASK_CAN_RUN) reached this page - whose ?install/?remove write to and archive from
+        // the asset store. Core dev controllers guard themselves the same way (TaskRunner::canInit()).
+//        // Security handled by DevelopmentAdmin middleware (CSRF protection, auth)
+        if (!$this->canInit()) {
+            Security::permissionFailure($this);
+        }
+    }
+
+    /**
+     * Who may use this page: anyone in dev mode, otherwise administrators only.
+     *
+     * Also consulted by DevelopmentAdmin::getLinks() (5 and 6) when deciding whether to list the
+     * link on /dev for a user who cannot see every dev link.
+     */
+    public function canInit(): bool
+    {
+        return Director::isDev() || Permission::check(['ADMIN', 'ALL_DEV_ADMIN']);
     }
 
     /**
