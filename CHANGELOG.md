@@ -47,7 +47,8 @@ And these failed quietly:
 
 - Requires `jonom/focuspoint` `^5 || ^6` (was `^4 || ^5`) and `restruct/silverstripe-simpler`
   `~0.2 || ^1`; declares `silverstripe/framework` `^5 || ^6` and PHP `^8.1` explicitly.
-- Licence is MIT (releases up to 2.0.8 declared BSD-3-Clause), and a `LICENSE` file is added.
+- A `LICENSE` file is added (BSD-3-Clause, unchanged from earlier releases), naming the
+  copyright holders as the history shows.
 - `composer.json` has a `funding` entry.
 - README: the `cropconfig` example named a class that does not exist
   (`...\FocusPointCropField`), so that configuration was silently ignored. It is configured on

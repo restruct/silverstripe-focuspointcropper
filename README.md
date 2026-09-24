@@ -190,4 +190,4 @@ SS_PHPUNIT_FLUSH=1 vendor/bin/phpunit vendor/restruct/silverstripe-focuspointcro
 
 ## License
 
-MIT, see [LICENSE](LICENSE). Releases up to 2.0.8 declared BSD-3-Clause.
+BSD-3-Clause, see [LICENSE](LICENSE), as every earlier release declared.
