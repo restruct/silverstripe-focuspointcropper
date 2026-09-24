@@ -10,7 +10,7 @@
     "production": "mix --production"
   },
   "author": "",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "devDependencies": {
     "@babel/core": "^7.0.0-0",
     "@babel/preset-react": "^7.12.5",
