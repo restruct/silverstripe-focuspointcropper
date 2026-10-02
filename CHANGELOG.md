@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.0.1 (2026-10-02)
+
+### Fixed
+
+- Moving or resizing the crop box in the asset admin was never saved (#5). The script set the
+  `CropData` field with jQuery, which the admin's React form does not see, so React put its own
+  (empty) value back and the save sent `CropData=`. It now sets the value the way React picks it
+  up (the input's native value setter plus an `input` event). Crops stored before still load.
+
+### Tests
+
+- The browser spec that drags the crop box and saves is active (it was `fixme` because of #5),
+  and it works on its own seeded image, so the crop it stores does not leak into the other specs.
+
 ## 3.0.0 (2026-09-25)
 
 One line for Silverstripe 5 (PHP 8.1+) and 6 (PHP 8.3+), replacing `2.0.x` (Silverstripe 4 and 5).
