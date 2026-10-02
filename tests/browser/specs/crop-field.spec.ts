@@ -133,10 +133,11 @@ test('clicking inside the crop box sets the focus point, and saving stores it', 
     expect(Number(await y.inputValue())).toBeCloseTo(expected.y, 1);
 });
 
-// Bug: the cropend handler sets the CropData input with jQuery, and the admin's React form resets
-// it to its own (empty) state right after, so the crop never reaches the POST.
+// Regression test for #5: the cropend handler used to set the CropData input with jQuery, and the
+// admin's React form reset it to its own (empty) state right after, so the crop never reached the
+// POST. It now writes through the native value setter and dispatches an 'input' event.
 // https://github.com/restruct/silverstripe-focuspointcropper/issues/5
-test.fixme('dragging a crop handle writes CropData and saving stores it', async ({ page }) => {
+test('dragging a crop handle writes CropData and saving stores it', async ({ page }) => {
     const id = await openImage(page, 'Fpc drag');
 
     // Drag the top-left handle 100px right and 50px down on the 400x300 preview: the crop becomes

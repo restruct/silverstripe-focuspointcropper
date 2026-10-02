@@ -121,8 +121,19 @@ const sscropper = {
             let $dataField = $(dataField);
             // $dataField.trigger('focus');
             self.dataField().focus({preventScroll:true});
-            $dataField.val( JSON.stringify(cropData) );
-            $dataField.trigger('change');
+            // $dataField.val( JSON.stringify(cropData) );
+            // $dataField.trigger('change');
+            // The above never reached the saved record (#5): CropData is a React-controlled input
+            // of the admin's FormBuilder form. jQuery's .val() writes the DOM value, but React's
+            // value tracker is not told, and .trigger('change') only runs jQuery handlers (no native
+            // event), so React's onChange never fires. On the next re-render (the focus() above
+            // triggers one) React writes its own, still empty, state back and the POST sends CropData=.
+            // Writing through the prototype's native value setter bypasses React's instance-level
+            // setter override, so its tracker sees a real change; the bubbling native 'input' event
+            // then reaches React's root listener and runs onChange, which stores the value in state.
+            let nativeValueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+            nativeValueSetter.call(dataField, JSON.stringify(cropData));
+            dataField.dispatchEvent(new Event('input', { bubbles: true }));
         };
 
         // @TODO: Crop (eg drag) event, once per dragged pixel -> sync focuspoint overlay to stay at same position
