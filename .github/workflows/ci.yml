@@ -123,6 +123,7 @@ jobs:
               <testsuites>
                   <testsuite name="focuspointcropper">
                       <directory>vendor/restruct/silverstripe-focuspointcropper/tests</directory>
+                      <exclude>vendor/restruct/silverstripe-focuspointcropper/tests/browser</exclude>
                   </testsuite>
                   <testsuite name="consumer">
                       <directory>app/tests</directory>
