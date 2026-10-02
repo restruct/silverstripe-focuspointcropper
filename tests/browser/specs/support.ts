@@ -3,9 +3,11 @@ import { test as base, expect, type Locator, type Page, type Request } from '@pl
 // Shared fixtures and helpers for the focuspointcropper specs.
 //
 // The images are seeded on every dev/build by tests/browser/fixtures/FpcBSeed.php (copied into the
-// scratch host by the runner): folder "fpc-browser" with two 800x600 PNGs, "Fpc crop" without a
-// crop and "Fpc preset" with a stored crop region. The module sets the FocusPointField preview to
-// at most 400x300, so preview pixels are half the original pixels.
+// scratch host by the runner): folder "fpc-browser" with three 800x600 PNGs, "Fpc crop" without a
+// crop, "Fpc preset" with a stored crop region, and "Fpc drag" without a crop, used only by the
+// spec that drags the crop box and saves (so the stored crop does not leak into the other specs).
+// The module sets the FocusPointField preview to at most 400x300, so preview pixels are half the
+// original pixels.
 
 /**
  * test, extended with an automatic console guard: every spec fails if the page logs a console

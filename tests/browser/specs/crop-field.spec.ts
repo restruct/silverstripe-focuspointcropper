@@ -137,7 +137,7 @@ test('clicking inside the crop box sets the focus point, and saving stores it', 
 // it to its own (empty) state right after, so the crop never reaches the POST.
 // https://github.com/restruct/silverstripe-focuspointcropper/issues/5
 test.fixme('dragging a crop handle writes CropData and saving stores it', async ({ page }) => {
-    const id = await openImage(page, 'Fpc crop');
+    const id = await openImage(page, 'Fpc drag');
 
     // Drag the top-left handle 100px right and 50px down on the 400x300 preview: the crop becomes
     // x 100-400, y 50-300 on the preview, which is x 200-800, y 100-600 of the 800x600 original.
@@ -173,7 +173,7 @@ test.fixme('dragging a crop handle writes CropData and saving stores it', async 
     });
 
     // Reopened, the cropper starts on the saved region.
-    await openImage(page, 'Fpc crop');
+    await openImage(page, 'Fpc drag');
     await expect
         .poll(async () => {
             const r = await cropBoxRect(page);

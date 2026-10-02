@@ -28,11 +28,16 @@ class FpcBSeed extends DataObject
     /**
      * The seeded images: file name => [title, CropData]. One image without a crop (the cropper
      * starts on the whole image) and one with a stored crop region (the cropper must open on it).
+     * "Fpc drag" is a second image without a crop, for the spec that drags the crop box and saves:
+     * that spec stores a crop, so on a shared image every later spec (or a --repeat-each pass)
+     * would open on the saved region instead of the whole image. Its title must not contain
+     * another title ("Fpc crop drag" would also match the "Fpc crop" tile locator).
      * The preset region is in ORIGINAL pixels: x 200-600, y 150-450 of the 800x600 image, which
      * is x 100-300, y 75-225 on the 400x300 preview.
      */
     public const IMAGES = [
         'fpc-crop.png' => ['Fpc crop', null],
+        'fpc-drag.png' => ['Fpc drag', null],
         'fpc-preset.png' => ['Fpc preset', [
             'x' => 200, 'y' => 150, 'width' => 400, 'height' => 300,
             'originalX' => 200, 'originalY' => 150, 'originalWidth' => 400, 'originalHeight' => 300,
