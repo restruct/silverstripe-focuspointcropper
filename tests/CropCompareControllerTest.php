@@ -77,6 +77,42 @@ class CropCompareControllerTest extends FunctionalTest
     }
 
     /**
+     * Regression (#6): without restruct/silverstripe-svg-images the install wrote croptest.svg,
+     * which the asset store refuses ("Extension 'svg' is not allowed"), so no test image was
+     * installed and the bundled comparison never ran. Now the SVG sample is skipped there.
+     */
+    public function testInstallWorksWithoutSvgSupport(): void
+    {
+        // This suite's hosts do not install svg-images; on a host that does, this test says
+        // nothing about #6, so it skips rather than passing for the wrong reason.
+        if (class_exists('Restruct\\Silverstripe\\SVG\\SVGImage')) {
+            $this->markTestSkipped('restruct/silverstripe-svg-images is installed');
+        }
+        $this->logInWithPermission('ADMIN');
+
+        $response = $this->get('dev/crop-compare?install=1');
+
+        $this->assertSame(200, $response->getStatusCode());
+        $body = $response->getBody();
+        $this->assertStringNotContainsString('Install failed', $body);
+        // The comparison page for the bundled PNG: CroppedImage() of its 100x75 CropData region
+        $this->assertStringContainsString('CroppedFill(100, 100)', $body);
+        $this->assertStringContainsString('100x75', $body);
+        $this->assertStringContainsString('SVG tests need', $body);
+        $this->assertStringNotContainsString('Error:', $body);
+        $this->assertSame(1, File::get()->filter('Name', 'croptest.png')->count());
+        $this->assertSame(0, File::get()->filter('Name', 'croptest.svg')->count());
+
+        // Installing again finds the install complete and adds no second PNG
+        $this->get('dev/crop-compare?install=1');
+        $this->assertSame(1, File::get()->filter('Name:StartsWith', 'croptest')->count());
+
+        // ...and removing takes it out again
+        $this->get('dev/crop-compare?remove=1');
+        $this->assertSame(0, File::get()->filter('Name:StartsWith', 'croptest')->count());
+    }
+
+    /**
      * Regression: the controller relied on DevelopmentAdmin to authorise it ("Security handled by
      * DevelopmentAdmin middleware"). DevelopmentAdmin only refuses a user who can see NO dev link
      * at all, so in live mode anyone holding e.g. BUILDTASK_CAN_RUN (who can see dev/tasks) was

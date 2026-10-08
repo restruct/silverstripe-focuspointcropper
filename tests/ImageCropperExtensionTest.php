@@ -185,6 +185,58 @@ class ImageCropperExtensionTest extends SapphireTest
         $this->assertEqualsWithDelta(0.0, $cropped->FocusPoint->getY(), 0.001);
     }
 
+    /**
+     * Regression (#4): a focus point outside the crop region was moved into the cropped frame
+     * without clamping, so it came out beyond [-1, 1] (e.g. Y 1.37). focuspoint clamps the
+     * offset when it renders, so the image looked right, but the stored value was out of range
+     * and the variant key differed for equivalent inputs.
+     */
+    public function testFocusPointOutsideTheCropIsClampedToTheCroppedFrame(): void
+    {
+        // Focus at pixel (150, 112.5) of 200x150, the centre of the bottom-right quadrant; the
+        // crop is the top-left quadrant. Unclamped this lands on (2, 2) in the cropped frame.
+        $image = $this->makeQuadrantImage('focusout1.png', [
+            'CropData' => $this->cropData(0, 0, 100, 75),
+            'FocusPointX' => 0.5,
+            'FocusPointY' => 0.5,
+        ]);
+
+        $cropped = $image->CroppedImage();
+
+        $this->assertEqualsWithDelta(1.0, $cropped->FocusPoint->getX(), 0.001);
+        $this->assertEqualsWithDelta(1.0, $cropped->FocusPoint->getY(), 0.001);
+    }
+
+    public function testFocusPointBeforeTheCropIsClampedToTheCroppedFrame(): void
+    {
+        // The mirror case: focus in the top-left quadrant, crop the bottom-right one -> (-2, -2).
+        $image = $this->makeQuadrantImage('focusout2.png', [
+            'CropData' => $this->cropData(100, 75, 100, 75),
+            'FocusPointX' => -0.5,
+            'FocusPointY' => -0.5,
+        ]);
+
+        $cropped = $image->CroppedImage();
+
+        $this->assertEqualsWithDelta(-1.0, $cropped->FocusPoint->getX(), 0.001);
+        $this->assertEqualsWithDelta(-1.0, $cropped->FocusPoint->getY(), 0.001);
+    }
+
+    public function testFocusPointOutsideOnOneAxisKeepsTheOtherAxis(): void
+    {
+        // Focus at pixel (150, 37.5): inside the crop's height, right of its width. Only X clamps.
+        $image = $this->makeQuadrantImage('focusout3.png', [
+            'CropData' => $this->cropData(0, 0, 100, 75),
+            'FocusPointX' => 0.5,
+            'FocusPointY' => -0.5,
+        ]);
+
+        $cropped = $image->CroppedImage();
+
+        $this->assertEqualsWithDelta(1.0, $cropped->FocusPoint->getX(), 0.001);
+        $this->assertEqualsWithDelta(0.0, $cropped->FocusPoint->getY(), 0.001);
+    }
+
     public function testLegacyAliasesStillResolve(): void
     {
         $image = $this->makeQuadrantImage('alias.png', ['CropData' => $this->cropData(100, 0, 100, 75)]);

@@ -72,9 +72,19 @@
             <div class="mt-4">
                 <p><strong>Option 1:</strong> Install test images with sample CropData</p>
                 <p class="small text-muted mb-3">
+                    <%-- Without SVG support only the PNG sample is installed (#6) --%>
+                    <% if $SVGSupported %>
                     Creates 2 test files (SVG + PNG) in <code>assets/$TestFolder/</code><br>
+                    <% else %>
+                    Creates a PNG test file in <code>assets/$TestFolder/</code><br>
+                    <% end_if %>
                     with pre-configured CropData for testing
                 </p>
+                <% if not $SVGSupported %>
+                <p class="small text-muted mb-3 svg-unsupported-note">
+                    The SVG sample needs <code>restruct/silverstripe-svg-images</code> (with <code>svg</code> allowed in <code>File.allowed_extensions</code>) and is skipped.
+                </p>
+                <% end_if %>
                 <a href="$InstallURL" class="btn btn-success" onclick="return confirm('Install test images to the database?');">
                     Install Test Images &amp; Run Test
                 </a>
@@ -110,8 +120,15 @@
         </div>
     </div>
 
+    <% if not $SVGImage %>
+    <div class="alert alert-secondary svg-unsupported-note">
+        No SVG sample: the SVG tests need <code>restruct/silverstripe-svg-images</code> (with <code>svg</code> allowed in <code>File.allowed_extensions</code>).
+    </div>
+    <% end_if %>
+
     <div class="row">
-        <%-- SVG Column --%>
+        <%-- SVG Column, left out when the SVG sample was skipped (#6) --%>
+        <% if $SVGImage %>
         <div class="col-6">
             <div class="card mb-4">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
@@ -184,8 +201,10 @@
             </div>
         </div>
 
+        <% end_if %>
+
         <%-- PNG Column --%>
-        <div class="col-6">
+        <div class="<% if $SVGImage %>col-6<% else %>col-12<% end_if %>">
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <strong>PNG Image</strong>

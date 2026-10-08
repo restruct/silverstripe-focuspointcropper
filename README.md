@@ -113,6 +113,8 @@ When used together with [restruct/silverstripe-svg-images](https://github.com/re
 
 A visual comparison tool is available at `/dev/crop-compare` to test crop functionality with both SVG and PNG images.
 It is open to anyone in dev mode; otherwise only to administrators (`ADMIN` or `ALL_DEV_ADMIN`).
+The SVG sample needs [restruct/silverstripe-svg-images](https://github.com/restruct/silverstripe-svg-images);
+without it, installing the test images installs the PNG only and the page shows the PNG column alone.
 
 ![Crop Compare Test Tool](docs/crop-compare-test.png)
 
