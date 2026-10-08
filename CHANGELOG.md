@@ -8,6 +8,17 @@
   moved into the cropped frame without clamping, so it came out beyond the -1..1 range (eg Y 1.37).
   focuspoint clamps the offset when it renders, so images looked right, but the out-of-range value
   was stored on the variant and equivalent inputs produced different variant keys.
+- `/dev/crop-compare`: installing the test images works without `restruct/silverstripe-svg-images`
+  (#6). It always wrote an SVG sample, which a default install refuses ("Extension 'svg' is not
+  allowed"), so nothing was installed and the comparison never ran. Without SVG support (the
+  svg-images module, with `svg` in `File.allowed_extensions`) the SVG sample is now skipped, the page
+  shows the PNG column only and says why. A PNG-only install is completed with the SVG sample once
+  SVG support is added.
+
+### Tests
+
+- The browser spec that installs the bundled test images without svg-images is active (it was
+  `fixme` because of #6).
 
 ## 3.0.1 (2026-10-02)
 

@@ -121,7 +121,8 @@ class CropCompareController extends Controller
 
         // If test images are installed, use those
         if ($testImagesInstalled) {
-            $svgImage = $this->getBundledTestSVG();
+            # Without SVG support only the PNG is installed and shown (#6)
+            $svgImage = $this->svgSamplesSupported() ? $this->getBundledTestSVG() : null;
             $pngImage = $this->getBundledTestPNG();
 
             return $this->renderComparison($svgImage, $pngImage, true);
@@ -143,11 +144,15 @@ class CropCompareController extends Controller
             'TestImagesInstalled' => $testImagesInstalled,
             'InstallURL' => $this->Link('?install=1'),
             'TestFolder' => self::config()->get('test_folder'),
+            'SVGSupported' => $this->svgSamplesSupported(),
         ])->renderWith(['Restruct/SilverStripe/ImageCropper/CropCompare']);
     }
 
     /**
      * Render the comparison page.
+     *
+     * $svgImage may be null: the bundled test images skip the SVG sample on a site without SVG
+     * support (#6), and the page then renders the PNG column only.
      */
     protected function renderComparison($svgImage, $pngImage, bool $usingTestImages)
     {
@@ -155,7 +160,8 @@ class CropCompareController extends Controller
 
         // Generate comparison data for SVG
         $svgComparisons = static::arrayListClass()::create();
-        foreach ($manipulations as $manipulation) {
+        # No SVG: no comparisons, and the template leaves the SVG column out
+        foreach ($svgImage ? $manipulations : [] as $manipulation) {
             $comparison = $this->generateComparison($svgImage, $manipulation);
             if ($comparison) {
                 $svgComparisons->push($comparison);
@@ -172,8 +178,9 @@ class CropCompareController extends Controller
         }
 
         // Get FocusPoint data
-        $svgFocusX = $svgImage->FocusPointX ?? 0;
-        $svgFocusY = $svgImage->FocusPointY ?? 0;
+        # Nullsafe: $svgImage is null when the SVG sample was skipped (#6)
+        $svgFocusX = $svgImage?->FocusPointX ?? 0;
+        $svgFocusY = $svgImage?->FocusPointY ?? 0;
         $pngFocusX = $pngImage->FocusPointX ?? 0;
         $pngFocusY = $pngImage->FocusPointY ?? 0;
 
@@ -184,11 +191,11 @@ class CropCompareController extends Controller
             'PNGImage' => $pngImage,
             'SVGComparisons' => $svgComparisons,
             'PNGComparisons' => $pngComparisons,
-            'OriginalSVG' => $this->getImageData($svgImage),
+            'OriginalSVG' => $svgImage ? $this->getImageData($svgImage) : null,
             'OriginalPNG' => $this->getImageData($pngImage),
-            'SVGHasCropData' => !empty($svgImage->CropData),
+            'SVGHasCropData' => !empty($svgImage?->CropData),
             'PNGHasCropData' => !empty($pngImage->CropData),
-            'SVGCropData' => $svgImage->CropData,
+            'SVGCropData' => $svgImage?->CropData,
             'PNGCropData' => $pngImage->CropData,
             'SVGHasFocusPoint' => ($svgFocusX != 0 || $svgFocusY != 0),
             'PNGHasFocusPoint' => ($pngFocusX != 0 || $pngFocusY != 0),
@@ -198,9 +205,10 @@ class CropCompareController extends Controller
             'PNGFocusPointY' => round($pngFocusY, 2),
             'UsingTestImages' => $usingTestImages,
             'RemoveURL' => $this->Link('?remove=1'),
-            'SVGEditURL' => '/admin/assets/EditForm/field/File/item/' . $svgImage->ID . '/edit',
+            'SVGEditURL' => $svgImage ? '/admin/assets/EditForm/field/File/item/' . $svgImage->ID . '/edit' : null,
             'PNGEditURL' => '/admin/assets/EditForm/field/File/item/' . $pngImage->ID . '/edit',
             'HasFocusPointModule' => $this->hasFocusPointModule(),
+            'SVGSupported' => $this->svgSamplesSupported(),
         ])->renderWith(['Restruct/SilverStripe/ImageCropper/CropCompare']);
     }
 
@@ -213,6 +221,11 @@ class CropCompareController extends Controller
             return null;
         }
 
+        # Each sample is installed only if it is missing, so a PNG-only install (no SVG support,
+        # #6) is completed with the SVG once SVG support is added, without a second PNG.
+        $installSVG = $this->svgSamplesSupported() && !$this->getBundledTestSVG();
+        $installPNG = !$this->getBundledTestPNG();
+
         $folder = Folder::find_or_make(self::config()->get('test_folder'));
         $folderPath = rtrim($folder->getFilename(), '/');
 
@@ -220,12 +233,16 @@ class CropCompareController extends Controller
         $svgContent = $this->generateTestSVG();
         $pngContent = $this->generateTestPNG();
 
-        if (!$pngContent) {
+        if ($installPNG && !$pngContent) {
             return 'Could not generate PNG test image. Is GD installed?';
         }
 
         // Check if SVGImage class exists
-        $svgClass = class_exists(SVGImage::class) ? SVGImage::class : Image::class;
+        # Was the fallback for a site without svg-images, but an .svg cannot be stored there
+        # ("Extension 'svg' is not allowed") and the whole install failed (#6). The SVG sample is
+        # now only installed when svgSamplesSupported(), which implies SVGImage exists.
+//        $svgClass = class_exists(SVGImage::class) ? SVGImage::class : Image::class;
+        $svgClass = SVGImage::class;
 
         // FocusPoint at pixel (125, 55) on 200x150 image - inside crop area
         // Converted to -1 to 1 scale: X = (125/200)*2-1 = 0.25, Y = (55/150)*2-1 = -0.27
@@ -245,26 +262,30 @@ class CropCompareController extends Controller
         ];
 
         // Install SVG
-        $svg = $svgClass::create();
-        $svg->setFromString($svgContent, $folderPath . '/' . self::config()->get('test_svg_name'));
-        $svg->Title = 'Crop Test SVG';
-        $svg->CropData = json_encode($cropData);
-        // Set FocusPoint data
-        $svg->FocusPointX = $focusPointX;
-        $svg->FocusPointY = $focusPointY;
-        $svg->write();
-        $svg->publishSingle();
+        if ($installSVG) {
+            $svg = $svgClass::create();
+            $svg->setFromString($svgContent, $folderPath . '/' . self::config()->get('test_svg_name'));
+            $svg->Title = 'Crop Test SVG';
+            $svg->CropData = json_encode($cropData);
+            // Set FocusPoint data
+            $svg->FocusPointX = $focusPointX;
+            $svg->FocusPointY = $focusPointY;
+            $svg->write();
+            $svg->publishSingle();
+        }
 
         // Install PNG
-        $png = Image::create();
-        $png->setFromString($pngContent, $folderPath . '/' . self::config()->get('test_png_name'));
-        $png->Title = 'Crop Test PNG';
-        $png->CropData = json_encode($cropData);
-        // Set FocusPoint data
-        $png->FocusPointX = $focusPointX;
-        $png->FocusPointY = $focusPointY;
-        $png->write();
-        $png->publishSingle();
+        if ($installPNG) {
+            $png = Image::create();
+            $png->setFromString($pngContent, $folderPath . '/' . self::config()->get('test_png_name'));
+            $png->Title = 'Crop Test PNG';
+            $png->CropData = json_encode($cropData);
+            // Set FocusPoint data
+            $png->FocusPointX = $focusPointX;
+            $png->FocusPointY = $focusPointY;
+            $png->write();
+            $png->publishSingle();
+        }
 
         return null;
     }
@@ -299,7 +320,24 @@ class CropCompareController extends Controller
      */
     protected function testImagesInstalled(): bool
     {
-        return $this->getBundledTestSVG() !== null && $this->getBundledTestPNG() !== null;
+        # The SVG sample only counts where it can be installed at all (#6)
+//        return $this->getBundledTestSVG() !== null && $this->getBundledTestPNG() !== null;
+        return $this->getBundledTestPNG() !== null
+            && (!$this->svgSamplesSupported() || $this->getBundledTestSVG() !== null);
+    }
+
+    /**
+     * Whether the SVG test sample can be installed and manipulated on this site.
+     *
+     * Needs restruct/silverstripe-svg-images (a suggested, not required, dependency): without it
+     * Image cannot crop an SVG, and 'svg' is not in File.allowed_extensions on a default install,
+     * so storing the sample throws (#6). The extension is checked as well because a site can
+     * have the module installed and still disallow the extension.
+     */
+    protected function svgSamplesSupported(): bool
+    {
+        return class_exists(SVGImage::class)
+            && in_array('svg', File::getAllowedExtensions(), true);
     }
 
     /**

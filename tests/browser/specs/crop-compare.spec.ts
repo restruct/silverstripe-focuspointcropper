@@ -67,11 +67,19 @@ test('Cropped* methods apply the stored crop region', async ({ page }) => {
     }
 });
 
-// Bug: without restruct/silverstripe-svg-images the install writes an .svg that the asset store
-// refuses ("Extension 'svg' is not allowed"), so the bundled comparison never runs.
+// Regression: without restruct/silverstripe-svg-images the install wrote an .svg that the asset
+// store refuses ("Extension 'svg' is not allowed"), so the bundled comparison never ran. The SVG
+// sample is now skipped there and the page shows the PNG column only.
 // https://github.com/restruct/silverstripe-focuspointcropper/issues/6
-test.fixme('installing the bundled test images works without svg-images', async ({ page }) => {
+test('installing the bundled test images works without svg-images', async ({ page }) => {
     await page.goto('/dev/crop-compare?install=1');
     await expect(page.locator('.alert-danger')).toHaveCount(0);
     await expect(page.locator('td.result-cell img').first()).toBeVisible();
+    // Only the PNG column, with the note saying why the SVG one is missing
+    await expect(page.locator('.svg-unsupported-note')).toBeVisible();
+    await expect(page.locator('.card-header', { hasText: 'SVG Image' })).toHaveCount(0);
+
+    // Leave the host as found: the next run starts from the setup page again
+    await page.goto('/dev/crop-compare?remove=1');
+    await expect(page.locator('a', { hasText: 'Install Test Images' })).toBeVisible();
 });
