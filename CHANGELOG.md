@@ -1,13 +1,15 @@
 # Changelog
 
-## 3.0.2 (unreleased)
+## 3.0.2 (2026-10-08)
 
 ### Fixed
 
 - A focus point outside the crop region is clamped to the edge of the cropped frame (#4). It was
   moved into the cropped frame without clamping, so it came out beyond the -1..1 range (eg Y 1.37).
-  focuspoint clamps the offset when it renders, so images looked right, but the out-of-range value
-  was stored on the variant and equivalent inputs produced different variant keys.
+  focuspoint clamps the offset when it crops (`FocusFill`/`FocusCrop*`), so those images looked
+  right, but `PercentageX`/`PercentageY` (used for CSS `background-position`/`object-position`) came
+  out beyond 100%, the out-of-range value was stored on the variant, and equivalent inputs produced
+  different variant keys.
 - `/dev/crop-compare`: installing the test images works without `restruct/silverstripe-svg-images`
   (#6). It always wrote an SVG sample, which a default install refuses ("Extension 'svg' is not
   allowed"), so nothing was installed and the comparison never ran. Without SVG support (the
