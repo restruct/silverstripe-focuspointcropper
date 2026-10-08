@@ -345,6 +345,13 @@ class ImageCropperExtension
 //var_dump("FPY_new_rel = FPY_new_relZeroBased:$FPY_new_relZeroBased * 2 - 1 = $FPY_new_rel");
 //die();
 
+            # A focus point outside the crop region maps beyond the cropped frame (eg Y 1.37), so
+            # clamp it to the frame's edge (#4). focuspoint clamps the offset when it renders, so the
+            # output looked right, but the out-of-range value was stored on the variant and keyed
+            # equivalent inputs to different variants.
+            $FPX_new_rel = max(-1.0, min(1.0, $FPX_new_rel));
+            $FPY_new_rel = max(-1.0, min(1.0, $FPY_new_rel));
+
             // Force refresh of new focus point for DBFile (Image dataobject uses its own value)
             if ($newImage instanceof DBFile) {
                 $newFocusPoint = DBFocusPoint::create();

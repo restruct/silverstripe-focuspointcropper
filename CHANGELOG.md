@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.2 (unreleased)
+
+### Fixed
+
+- A focus point outside the crop region is clamped to the edge of the cropped frame (#4). It was
+  moved into the cropped frame without clamping, so it came out beyond the -1..1 range (eg Y 1.37).
+  focuspoint clamps the offset when it renders, so images looked right, but the out-of-range value
+  was stored on the variant and equivalent inputs produced different variant keys.
+
 ## 3.0.1 (2026-10-02)
 
 ### Fixed
