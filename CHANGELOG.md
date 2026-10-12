@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Tests
+
+- `/dev/crop-compare` is tested with `restruct/silverstripe-svg-images` installed (#8): completing a
+  PNG-only install with the SVG sample once `svg` is allowed (no second PNG), adding only a missing
+  PNG next to an existing SVG (no second SVG), and the comparison page rendering both columns.
+  svg-images `^3.1` is in `require-dev`, and CI has one svg-images leg per Silverstripe major; the
+  other legs keep running without it, where the #6 regression test applies.
+- The browser spec for installing the test images without svg-images skips on a host that has it.
+
 ## 3.0.2 (2026-10-08)
 
 ### Fixed

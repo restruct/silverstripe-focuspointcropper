@@ -83,8 +83,9 @@ class CropCompareControllerTest extends FunctionalTest
      */
     public function testInstallWorksWithoutSvgSupport(): void
     {
-        // This suite's hosts do not install svg-images; on a host that does, this test says
-        // nothing about #6, so it skips rather than passing for the wrong reason.
+        // The main CI legs do not install svg-images (the svg-images legs and a local host with
+        // require-dev do); on a host that does, this test says nothing about #6, so it skips
+        // rather than passing for the wrong reason.
         if (class_exists('Restruct\\Silverstripe\\SVG\\SVGImage')) {
             $this->markTestSkipped('restruct/silverstripe-svg-images is installed');
         }
@@ -110,6 +111,117 @@ class CropCompareControllerTest extends FunctionalTest
         // ...and removing takes it out again
         $this->get('dev/crop-compare?remove=1');
         $this->assertSame(0, File::get()->filter('Name:StartsWith', 'croptest')->count());
+    }
+
+    /**
+     * With svg-images installed (#8): a PNG-only install, made while the site disallowed 'svg',
+     * is completed with the SVG once 'svg' is allowed again, without a second PNG.
+     *
+     * Guards two things the suite did not see before #8: the File::getAllowedExtensions() check
+     * in svgSamplesSupported() (without it the first install writes croptest.svg anyway, on a site
+     * that disallows the extension; measured 2026-10-12, the store does not refuse it on this
+     * path), and the $installPNG guard in installTestImages() (without it the second install
+     * writes croptest-v2.png next to the first PNG).
+     */
+    public function testAPngOnlyInstallIsCompletedWithTheSvgOnceSvgIsAllowed(): void
+    {
+        $this->skipUnlessSvgImagesInstalled();
+        $this->logInWithPermission('ADMIN');
+        # A successful install answers with a redirect to the page, a failed one renders the setup
+        # page with the error (200); not following the redirect keeps the two apart.
+        $this->autoFollowRedirection = false;
+
+        # svg-images allows 'svg'; a site may still switch it off, which is the PNG-only case
+        File::config()->merge('allowed_extensions', ['svg' => false]);
+        $this->assertNotContains('svg', File::getAllowedExtensions(), 'precondition: svg disallowed');
+
+        $response = $this->get('dev/crop-compare?install=1');
+        $this->assertSame(302, $response->getStatusCode(), 'install must succeed: ' . $response->getBody());
+        $this->assertSame(['croptest.png'], $this->installedTestFileNames());
+
+        File::config()->merge('allowed_extensions', ['svg' => true]);
+        $this->assertContains('svg', File::getAllowedExtensions(), 'precondition: svg allowed again');
+
+        $response = $this->get('dev/crop-compare?install=1');
+        $this->assertSame(302, $response->getStatusCode(), 'install must succeed: ' . $response->getBody());
+        # Exactly the two samples: no croptest-v2.png from installing the PNG a second time
+        $this->assertSame(['croptest.png', 'croptest.svg'], $this->installedTestFileNames());
+        $this->assertInstanceOf(
+            'Restruct\\Silverstripe\\SVG\\SVGImage',
+            File::get()->filter('Name', 'croptest.svg')->first()
+        );
+    }
+
+    /**
+     * With svg-images installed (#8): when the SVG sample is there and the PNG is not, installing
+     * adds the PNG only. Guards the $installSVG guard in installTestImages(), the mirror image of
+     * the $installPNG one: without it this writes croptest-v2.svg.
+     */
+    public function testInstallAddsOnlyTheMissingPngWhenTheSvgIsThere(): void
+    {
+        $this->skipUnlessSvgImagesInstalled();
+        $this->logInWithPermission('ADMIN');
+        $this->autoFollowRedirection = false;
+
+        $this->get('dev/crop-compare?install=1');
+        $this->assertSame(['croptest.png', 'croptest.svg'], $this->installedTestFileNames());
+
+        # Take the PNG away, as a user deleting it in the CMS would
+        File::get()->filter('Name', 'croptest.png')->first()->doArchive();
+        $this->assertSame(['croptest.svg'], $this->installedTestFileNames());
+
+        $response = $this->get('dev/crop-compare?install=1');
+        $this->assertSame(302, $response->getStatusCode(), 'install must succeed: ' . $response->getBody());
+        $this->assertSame(['croptest.png', 'croptest.svg'], $this->installedTestFileNames());
+    }
+
+    /**
+     * With svg-images installed (#8): a fresh install writes both samples and the page renders an
+     * SVG column next to the PNG one, without the "SVG tests need svg-images" note. The SVG is
+     * the controller's own generated 200x150 sample; svg-images manipulates it as XML (it never
+     * reaches the raster backend), so this runs on GD alone.
+     */
+    public function testInstallWithSvgImagesRendersBothColumns(): void
+    {
+        $this->skipUnlessSvgImagesInstalled();
+        $this->logInWithPermission('ADMIN');
+
+        # Followed redirect: this is the comparison page for the bundled samples
+        $response = $this->get('dev/crop-compare?install=1');
+
+        $this->assertSame(200, $response->getStatusCode());
+        $body = $response->getBody();
+        $this->assertStringNotContainsString('Install failed', $body);
+        $this->assertStringNotContainsString('Error:', $body);
+        $this->assertStringNotContainsString('svg-unsupported-note', $body);
+        $this->assertSame(['croptest.png', 'croptest.svg'], $this->installedTestFileNames());
+        # An SVG variant is linked from the page, so the SVG column rendered results
+        $this->assertMatchesRegularExpression('#croptest__[^"\']*\.svg#', $body);
+
+        # Removing takes both samples out again
+        $this->get('dev/crop-compare?remove=1');
+        $this->assertSame([], $this->installedTestFileNames());
+    }
+
+    /**
+     * The svg-images tests above say nothing on a host without it (the #6 test covers that one),
+     * so they skip there rather than fail.
+     */
+    private function skipUnlessSvgImagesInstalled(): void
+    {
+        if (!class_exists('Restruct\\Silverstripe\\SVG\\SVGImage')) {
+            $this->markTestSkipped('needs restruct/silverstripe-svg-images (require-dev)');
+        }
+    }
+
+    /**
+     * Names of the installed sample files, sorted, so a duplicate shows up as e.g. croptest-v2.png.
+     */
+    private function installedTestFileNames(): array
+    {
+        $names = File::get()->filter('Name:StartsWith', 'croptest')->column('Name');
+        sort($names);
+        return $names;
     }
 
     /**

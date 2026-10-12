@@ -72,6 +72,15 @@ test('Cropped* methods apply the stored crop region', async ({ page }) => {
 // sample is now skipped there and the page shows the PNG column only.
 // https://github.com/restruct/silverstripe-focuspointcropper/issues/6
 test('installing the bundled test images works without svg-images', async ({ page }) => {
+    // On a host WITH svg-images both samples are installed and the assertions below would fail
+    // for the wrong reason, so this spec skips there (#8). svg-images registers /dev/svg-compare,
+    // whose link on /dev is the marker. The with-svg-images case is covered by the unit suite
+    // (CropCompareControllerTest, the svg-images tests).
+    await page.goto('/dev');
+    const svgImagesInstalled =
+        (await page.locator('a[href$="/dev/svg-compare"], a[href="dev/svg-compare"]').count()) > 0;
+    test.skip(svgImagesInstalled, 'restruct/silverstripe-svg-images is installed on this host');
+
     await page.goto('/dev/crop-compare?install=1');
     await expect(page.locator('.alert-danger')).toHaveCount(0);
     await expect(page.locator('td.result-cell img').first()).toBeVisible();
