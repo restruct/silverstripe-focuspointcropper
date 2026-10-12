@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: SS${{ matrix.silverstripe }} / PHP ${{ matrix.php }}
+    name: SS${{ matrix.silverstripe }} / PHP ${{ matrix.php }}${{ matrix.svgimages && ' / svg-images' || '' }}
     runs-on: ubuntu-latest
 
     strategy:
@@ -39,6 +39,24 @@ jobs:
             php: '8.4'
             recipe: '^6'
             testing: '^4'
+          # svg-images legs, one per supported major (#8). /dev/crop-compare has code paths that
+          # only run when restruct/silverstripe-svg-images is installed (the SVG sample, the
+          # $installPNG/$installSVG guards, the allowed_extensions check); the svg-images tests in
+          # CropCompareControllerTest skip without it. It is in the module's require-dev, but a
+          # dependency's require-dev never reaches this host, so these legs require it explicitly.
+          # Extra legs rather than adding it everywhere: the legs above must stay WITHOUT it,
+          # because the #6 regression test (install works without svg-images) skips when it is
+          # present. Keep the constraint in step with require-dev in composer.json.
+          - silverstripe: '5'
+            php: '8.3'
+            recipe: '^5'
+            testing: '^3'
+            svgimages: '^3.1'
+          - silverstripe: '6'
+            php: '8.4'
+            recipe: '^6'
+            testing: '^4'
+            svgimages: '^3.1'
 
     services:
       database:
@@ -106,6 +124,10 @@ jobs:
           # patched there. Composer therefore refuses to install it under the default policy.
           # Blocking is disabled HERE ONLY, in a throwaway CI host project.
           composer config policy.advisories.block false
+          # svg-images legs only (see the matrix). --no-update: resolved in the one update below.
+          if [ -n "${{ matrix.svgimages }}" ]; then
+            composer require --no-update --no-interaction "restruct/silverstripe-svg-images:${{ matrix.svgimages }}"
+          fi
           composer update --no-interaction --no-progress
 
       - name: Configure the test suite
