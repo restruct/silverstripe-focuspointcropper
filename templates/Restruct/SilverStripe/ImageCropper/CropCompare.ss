@@ -73,7 +73,10 @@
                 <p><strong>Option 1:</strong> Install test images with sample CropData</p>
                 <p class="small text-muted mb-3">
                     <%-- Without SVG support only the PNG sample is installed (#6) --%>
-                    <% if $SVGSupported %>
+                    <%-- A PNG-only install made before SVG support was added gets the SVG only (#8) --%>
+                    <% if $CompletesPNGOnlyInstall %>
+                    <span class="completes-png-only-install">Adds the SVG test file to the PNG already in <code>assets/$TestFolder/</code></span><br>
+                    <% else_if $SVGSupported %>
                     Creates 2 test files (SVG + PNG) in <code>assets/$TestFolder/</code><br>
                     <% else %>
                     Creates a PNG test file in <code>assets/$TestFolder/</code><br>
@@ -88,6 +91,12 @@
                 <a href="$InstallURL" class="btn btn-success" onclick="return confirm('Install test images to the database?');">
                     Install Test Images &amp; Run Test
                 </a>
+                <%-- The PNG of a PNG-only install is already there; let it be removed from here too (#8) --%>
+                <% if $CompletesPNGOnlyInstall %>
+                <a href="$RemoveURL" class="btn btn-danger" onclick="return confirm('Remove all test images?');">
+                    Remove Test Images
+                </a>
+                <% end_if %>
             </div>
 
             <div class="my-4 text-muted setup-divider">or</div>

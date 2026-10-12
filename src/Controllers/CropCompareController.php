@@ -145,7 +145,22 @@ class CropCompareController extends Controller
             'InstallURL' => $this->Link('?install=1'),
             'TestFolder' => self::config()->get('test_folder'),
             'SVGSupported' => $this->svgSamplesSupported(),
+            # A PNG-only install (#6) after SVG support was added: the install only adds the SVG,
+            # and the PNG already there can be removed from here (#8)
+            'CompletesPNGOnlyInstall' => $this->completesPngOnlyInstall(),
+            'RemoveURL' => $this->Link('?remove=1'),
         ])->renderWith(['Restruct/SilverStripe/ImageCropper/CropCompare']);
+    }
+
+    /**
+     * Whether installing now only adds the SVG sample to an existing PNG-only install: SVG support
+     * was added after the PNG was installed without it (#6, #8).
+     */
+    protected function completesPngOnlyInstall(): bool
+    {
+        return $this->svgSamplesSupported()
+            && $this->getBundledTestPNG() !== null
+            && $this->getBundledTestSVG() === null;
     }
 
     /**

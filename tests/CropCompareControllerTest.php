@@ -204,6 +204,36 @@ class CropCompareControllerTest extends FunctionalTest
     }
 
     /**
+     * With svg-images installed (#8): once SVG support is added to a PNG-only install, the setup
+     * page says the install adds the SVG (it said "Creates 2 test files (SVG + PNG)") and offers
+     * to remove the PNG already there (it showed no Remove button). A fresh setup page keeps the
+     * "Creates 2 test files" wording and no Remove button.
+     */
+    public function testSetupPageSaysItAddsTheSvgToAPngOnlyInstall(): void
+    {
+        $this->skipUnlessSvgImagesInstalled();
+        $this->logInWithPermission('ADMIN');
+        $this->autoFollowRedirection = false;
+
+        # Fresh: nothing installed yet
+        $body = $this->get('dev/crop-compare')->getBody();
+        $this->assertStringContainsString('Creates 2 test files (SVG + PNG)', $body);
+        $this->assertStringNotContainsString('Adds the SVG test file', $body);
+        $this->assertStringNotContainsString('?remove=1', $body);
+
+        # PNG-only install, then SVG support is added
+        File::config()->merge('allowed_extensions', ['svg' => false]);
+        $this->get('dev/crop-compare?install=1');
+        $this->assertSame(['croptest.png'], $this->installedTestFileNames());
+        File::config()->merge('allowed_extensions', ['svg' => true]);
+
+        $body = $this->get('dev/crop-compare')->getBody();
+        $this->assertStringContainsString('Adds the SVG test file', $body);
+        $this->assertStringNotContainsString('Creates 2 test files', $body);
+        $this->assertStringContainsString('?remove=1', $body);
+    }
+
+    /**
      * The svg-images tests above say nothing on a host without it (the #6 test covers that one),
      * so they skip there rather than fail.
      */

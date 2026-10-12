@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+
+- `/dev/crop-compare`: once SVG support is added to a PNG-only install, the setup page says the
+  install adds the SVG test file (it said "Creates 2 test files (SVG + PNG)") and shows a Remove
+  button for the PNG already there (#8).
+
 ### Tests
 
 - `/dev/crop-compare` is tested with `restruct/silverstripe-svg-images` installed (#8): completing a
