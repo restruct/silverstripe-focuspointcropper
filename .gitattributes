@@ -7,3 +7,4 @@
 /.gitignore        export-ignore
 /.editorconfig     export-ignore
 /UPGRADING.md      export-ignore
+/docs              export-ignore
