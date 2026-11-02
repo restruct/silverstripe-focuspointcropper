@@ -1,0 +1,9 @@
+# BROWSER-TEST FIXTURE ONLY: the /crop-showcase page behind the README screenshot
+# (FpcShowcaseController). The runner copies this to the scratch host's app/_config/.
+---
+Name: fpc-browser-showcase
+After: '#rootroutes'
+---
+SilverStripe\Control\Director:
+  rules:
+    'crop-showcase': 'Restruct\FpcBrowser\FpcShowcaseController'
