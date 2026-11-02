@@ -279,6 +279,13 @@ class ImageCropperExtension
         if ($this->owner->hasMethod('applyCropData') && $this->owner->CropData) {
             $croppedSVG = $this->owner->applyCropData($this->owner->CropData);
             if ($croppedSVG) {
+//                return $croppedSVG;
+                # The cropped SVG needs the focus point moved into its frame too, exactly as the
+                # raster variant below (#11). Without it the variant kept a copy of the original's
+                # focus point without a size, and svg-images' Focus* methods fell back to a centre
+                # Fill or returned the region uncropped. applyCropData() has validated the JSON.
+                $this->withCroppedFocusPoint($croppedSVG, json_decode($this->owner->CropData));
+
                 return $croppedSVG;
             }
             // Fall through to return owner if applyCropData returns null
@@ -317,26 +324,50 @@ class ImageCropperExtension
                 return $this->owner;
             }
 
-            // perform some recalculations
-            $FPX_orig_relZeroBased = ($this->owner->FocusPointX +1) / 2; // eg at 100 of 200 width cropped from X 60 to 110px width (right offset 170, right margin 30)
-            // The image's own size, via DBFocusPoint::getWidth()/getHeight(): FocusPointWidth/Height
-            // are only a cache, which focuspoint fills once the record already exists (its second
-            // write; publishing counts). On an image written once and left in draft they were 0,
-            // and the focus point collapsed onto the crop's top-left corner.
-            $imageWidth = $this->owner->FocusPoint ? $this->owner->FocusPoint->getWidth() : $this->owner->getWidth();
-            $imageHeight = $this->owner->FocusPoint ? $this->owner->FocusPoint->getHeight() : $this->owner->getHeight();
-//            $FPX_orig_abs = $FPX_orig_relZeroBased * $this->owner->FocusPointWidth; // eg at 100 of 200 width cropped from X 60 to 110px width (right offset 170, right margin 30)
-            $FPX_orig_abs = $FPX_orig_relZeroBased * $imageWidth; // eg at 100 of 200 width cropped from X 60 to 110px width (right offset 170, right margin 30)
-            $FPX_new_abs = $FPX_orig_abs - $cropData->originalX; // eg 100 (orig x) - 60 (left crop offset) = 40
-            $FPX_new_relZeroBased = 1 / $cropData->originalWidth * $FPX_new_abs;
-            $FPX_new_rel = $FPX_new_relZeroBased * 2 - 1;
+            # The focus point recalculation lives in withCroppedFocusPoint(), shared with the SVG
+            # path above (#11)
+            $this->withCroppedFocusPoint($newImage, $cropData);
 
-            $FPY_orig_relZeroBased = ($this->owner->FocusPointY + 1) / 2;
+            return $newImage;
+        }
+
+        // Else just return the full image(?)
+        return $this->owner;
+    }
+
+    /**
+     * Give a cropped variant the owner's focus point, moved into the cropped frame: recalculated
+     * for the crop region, clamped to its edges (#4), and sized to the region so focuspoint (and
+     * svg-images' Focus* methods for SVGs) compute crops against the cropped frame.
+     *
+     * Shared by the raster and the SVG path of applyCropManipulation() (#11). Only a DBFile
+     * variant gets it; an Image record keeps its own value.
+     *
+     * @param AssetContainer $variant The cropped variant
+     * @param object $cropData Decoded CropData (originalX/Y/Width/Height)
+     */
+    private function withCroppedFocusPoint(AssetContainer $variant, object $cropData): void
+    {
+        // perform some recalculations
+        $FPX_orig_relZeroBased = ($this->owner->FocusPointX +1) / 2; // eg at 100 of 200 width cropped from X 60 to 110px width (right offset 170, right margin 30)
+        // The image's own size, via DBFocusPoint::getWidth()/getHeight(): FocusPointWidth/Height
+        // are only a cache, which focuspoint fills once the record already exists (its second
+        // write; publishing counts). On an image written once and left in draft they were 0,
+        // and the focus point collapsed onto the crop's top-left corner.
+        $imageWidth = $this->owner->FocusPoint ? $this->owner->FocusPoint->getWidth() : $this->owner->getWidth();
+        $imageHeight = $this->owner->FocusPoint ? $this->owner->FocusPoint->getHeight() : $this->owner->getHeight();
+//            $FPX_orig_abs = $FPX_orig_relZeroBased * $this->owner->FocusPointWidth; // eg at 100 of 200 width cropped from X 60 to 110px width (right offset 170, right margin 30)
+        $FPX_orig_abs = $FPX_orig_relZeroBased * $imageWidth; // eg at 100 of 200 width cropped from X 60 to 110px width (right offset 170, right margin 30)
+        $FPX_new_abs = $FPX_orig_abs - $cropData->originalX; // eg 100 (orig x) - 60 (left crop offset) = 40
+        $FPX_new_relZeroBased = 1 / $cropData->originalWidth * $FPX_new_abs;
+        $FPX_new_rel = $FPX_new_relZeroBased * 2 - 1;
+
+        $FPY_orig_relZeroBased = ($this->owner->FocusPointY + 1) / 2;
 //            $FPY_orig_abs = $FPY_orig_relZeroBased * $this->owner->FocusPointHeight;
-            $FPY_orig_abs = $FPY_orig_relZeroBased * $imageHeight;
-            $FPY_new_abs = $FPY_orig_abs - $cropData->originalY;
-            $FPY_new_relZeroBased = 1 / $cropData->originalHeight * $FPY_new_abs;
-            $FPY_new_rel = $FPY_new_relZeroBased * 2 - 1;
+        $FPY_orig_abs = $FPY_orig_relZeroBased * $imageHeight;
+        $FPY_new_abs = $FPY_orig_abs - $cropData->originalY;
+        $FPY_new_relZeroBased = 1 / $cropData->originalHeight * $FPY_new_abs;
+        $FPY_new_rel = $FPY_new_relZeroBased * 2 - 1;
 //var_dump("this->owner->FocusPointY: {$this->owner->FocusPointY}");
 //var_dump("FPY_orig_relZeroBased = (this->owner->FocusPointY:{$this->owner->FocusPointY} + 1) / 2 = $FPY_orig_relZeroBased");
 //var_dump("FPY_orig_abs = FPY_orig_relZeroBased * this->owner->FocusPointHeight:{$this->owner->FocusPointHeight} = $FPY_orig_abs");
@@ -345,30 +376,24 @@ class ImageCropperExtension
 //var_dump("FPY_new_rel = FPY_new_relZeroBased:$FPY_new_relZeroBased * 2 - 1 = $FPY_new_rel");
 //die();
 
-            # A focus point outside the crop region maps beyond the cropped frame (eg Y 1.37), so
-            # clamp it to the frame's edge (#4). focuspoint clamps the offset when it renders, so the
-            # output looked right, but the out-of-range value was stored on the variant and keyed
-            # equivalent inputs to different variants.
-            $FPX_new_rel = max(-1.0, min(1.0, $FPX_new_rel));
-            $FPY_new_rel = max(-1.0, min(1.0, $FPY_new_rel));
+        # A focus point outside the crop region maps beyond the cropped frame (eg Y 1.37), so
+        # clamp it to the frame's edge (#4). focuspoint clamps the offset when it renders, so the
+        # output looked right, but the out-of-range value was stored on the variant and keyed
+        # equivalent inputs to different variants.
+        $FPX_new_rel = max(-1.0, min(1.0, $FPX_new_rel));
+        $FPY_new_rel = max(-1.0, min(1.0, $FPY_new_rel));
 
-            // Force refresh of new focus point for DBFile (Image dataobject uses its own value)
-            if ($newImage instanceof DBFile) {
-                $newFocusPoint = DBFocusPoint::create();
-                $newFocusPoint->setValue([
-                    'X'      => $FPX_new_rel,
-                    'Y'      => $FPY_new_rel,
-                    'Width'  => $cropData->originalWidth,
-                    'Height' => $cropData->originalHeight,
-                ], $newImage);
-                $newImage->FocusPoint = $newFocusPoint;
-            }
-
-            return $newImage;
+        // Force refresh of new focus point for DBFile (Image dataobject uses its own value)
+        if ($variant instanceof DBFile) {
+            $newFocusPoint = DBFocusPoint::create();
+            $newFocusPoint->setValue([
+                'X'      => $FPX_new_rel,
+                'Y'      => $FPY_new_rel,
+                'Width'  => $cropData->originalWidth,
+                'Height' => $cropData->originalHeight,
+            ], $variant);
+            $variant->FocusPoint = $newFocusPoint;
         }
-
-        // Else just return the full image(?)
-        return $this->owner;
     }
 
 }
