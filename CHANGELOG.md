@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.0.4 (2026-11-02)
+
+### Fixed
+
+- On an SVG (with `restruct/silverstripe-svg-images`), the focus-aware methods ignored the focus
+  point: `CroppedFocusFill()` / `CroppedFocusFillMax()` filled from the centre of the crop region
+  and `CroppedFocusCropWidth()` / `CroppedFocusCropHeight()` returned the region uncropped (#11).
+  The cropped SVG now gets the focus point moved into the cropped frame, as the raster variant
+  always did; the recalculation is one shared helper for both paths.
+
+### Tests
+
+- `SVGCroppedFocusTest` (svg-images CI legs): the SVG results match the PNG ones in size, use a
+  focus crop/fill variant, and the cropped SVG carries the recalculated focus point.
+
 ## 3.0.3 (2026-10-12)
 
 ### Fixed

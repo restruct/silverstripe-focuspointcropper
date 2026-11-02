@@ -88,10 +88,10 @@ progress: horizontal offset only (a vertical offset raises an error).
 
 Together with [restruct/silverstripe-svg-images](https://github.com/restruct/silverstripe-svg-images),
 the crop region also applies to SVG files: svg-images detects this module and crops the SVG's
-viewBox, so the result is still a vector. Known limitation: on an SVG the focus-aware methods do
-not use the focus point yet (`CroppedFocusFill()` fills from the centre of the crop region,
-`CroppedFocusCropWidth()`/`CroppedFocusCropHeight()` return the region uncropped), see
-[#11](https://github.com/restruct/silverstripe-focuspointcropper/issues/11).
+viewBox, so the result is still a vector. The focus-aware methods (`CroppedFocusFill()`,
+`CroppedFocusFillMax()`, `CroppedFocusCropWidth()`, `CroppedFocusCropHeight()`) use the focus point
+on an SVG as on a raster image (since 3.0.4,
+[#11](https://github.com/restruct/silverstripe-focuspointcropper/issues/11)).
 
 ## Requirements and compatibility
 
