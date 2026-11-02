@@ -1,8 +1,8 @@
 {
 	"name": "restruct/silverstripe-focuspointcropper",
-	"description": "Even smarter automatic image cropping for SilverStripe",
+	"description": "Let editors crop images in the Silverstripe CMS: a crop region plus focus point per image, used by Cropped* image methods in templates. Builds on jonom/focuspoint.",
 	"type": "silverstripe-vendormodule",
-	"keywords": ["silverstripe", "crop", "cropping", "focus", "focuspoint", "image"],
+	"keywords": ["silverstripe", "silverstripe-module", "silverstripe-cms", "crop", "image-crop", "focus-point", "focuspoint", "image", "responsive-images", "asset-admin"],
 	"license": "BSD-3-Clause",
 	"authors": [
 		{
